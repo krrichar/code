@@ -1,1 +1,1 @@
-Provides various python3 scripts for cisco configurations.
+Provides various python3 scripts for Cisco configurations.
