@@ -52,12 +52,11 @@ def main():
                 net_connect.send_config_set(commands)
 
                 #  configure hsrp priority on router 1 only
-                if 'vdc1' in host.get('device'):
+                if 'vdc1' in device.get('device'):
                     net_connect.send_config_set([
                         'interface vlan {}'.format(vlan),
                         'hsrp {}'.format(vlan),
                         'priority 200'])
-
                 print(net_connect.send_command('show run interface {}'.format(vlan)))
 
                 #  cli output is parsed into a dictionary from returned text
