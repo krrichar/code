@@ -1,0 +1,45 @@
+---
+- connection: local
+  gather_facts: False
+  hosts: all
+
+  vars_prompt:
+    - name: "ansible_user"
+      prompt: "Username"
+      private: no
+    - name: "ansible_password"
+      prompt: "Password"
+      private: yes
+
+  vars:
+    cli:
+      host: "{{ ansible_host }}"
+      username: "{{ ansible_user }}"
+      password: "{{ ansible_password }}"
+      timeout: 25
+
+    omaha_vlans:
+      - {vlan_id: "3211", name: "VL3211_AP_PROD_141.123.160.128/25"}
+      - {vlan_id: "3291", name: "VL3291_AP_NON-PROD_141.123.168.128/25"}
+
+  tasks:
+    - name: "Henrietta Vlan Creation"
+      ios_vlan:
+        provider: "{{ cli }}"
+        vlan_id: "{{ item.vlan_id  }}"
+        name: "{{ item.name  }}"
+        state: "present"
+      with_items: "{{ henrietta_vlans }}"
+      when: "'US9485NE-DMZ-VDC' in inventory_hostname|upper"
+      tags: [change]
+
+    #00 rollback
+    - name: "Henrietta Vlan Deletion"
+      ios_vlan:
+        provider: "{{ cli }}"
+        vlan_id: "{{ item.vlan_id  }}"
+        name: "{{ item.name  }}"
+        state: "absent"
+      with_items: "{{ henrietta_vlans }}"
+      when: "'US9485NE-DMZ-VDC' in inventory_hostname|upper"
+      tags: [rollback]
