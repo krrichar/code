@@ -1,0 +1,52 @@
+{
+    "hosts": [
+        {
+            "device": "us6645ny-core-vdc1",
+            "network": "10.65.5.32/27",
+            "addr": "10.65.5.61/27",
+            "desc": "VL825_Upstream",
+            "standby": "10.65.5.33",
+            "vlan": "825"
+        },
+        {
+            "device": "us6645ny-core-vdc2",
+            "network": "10.65.5.32/27",
+            "addr": "10.65.5.62/27",
+            "desc": "VL825_Upstream",
+            "standby": "10.65.5.33",
+            "vlan": "825"
+        },
+        {
+            "device": "us6647ny-core-vdc1",
+            "network": "10.66.5.32/27",
+            "addr": "10.66.5.61/27",
+            "desc": "VL825_Upstream",
+            "standby": "10.66.5.33",
+            "vlan": "825"
+        },
+        {
+            "device": "us6647ny-core-vdc2",
+            "network": "10.66.5.32/27",
+            "addr": "10.66.5.62/27",
+            "desc": "VL825_Upstream",
+            "standby": "10.66.5.33",
+            "vlan": "825"
+        },
+        {
+            "device": "us9485ne-core-vdc1",
+            "network": "10.68.5.32/27",
+            "addr": "10.68.5.61/27",
+            "desc": "VL830_Upstream",
+            "standby": "10.68.5.33",
+            "vlan": "830"
+        },
+        {
+            "device": "us9485ne-core-vdc2",
+            "network": "10.68.5.32/27",
+            "addr": "10.68.5.62/27",
+            "desc": "VL830_Upstream",
+            "standby": "10.68.5.33",
+            "vlan": "830"
+        }
+    ]
+}
