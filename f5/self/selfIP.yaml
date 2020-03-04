@@ -1,0 +1,245 @@
+---
+- name: Create f5 Self IP's
+  hosts: all
+  connection: local
+  gather_facts: False
+
+  vars_prompt:
+    - name: ansible_user
+      prompt: 'Paychex Username'
+      private: False
+    - name: ansible_password
+      prompt: 'Paychex Password'
+      private: True
+
+  vars:
+   provider:
+     password: '{{ ansible_password }}'
+     server: '{{ inventory_hostname }}'
+     user: '{{ ansible_user }}'
+     validate_certs: False
+     server_port: 443
+
+   webster:
+     odd: [
+      {
+        self_name: VL1190_GTM_Zscaler-Self,
+        self_ip: '10.33.16.4',
+        netmask: '255.255.255.240',
+        float_name: VL1190_GTM_Zscaler-Float,
+        float_ip: '10.33.16.3',
+        vlan: VL1190_GTM_Zscaler,
+      }
+     ]
+     even: [
+      {
+        self_name: VL1190_GTM_Zscaler-Self,
+        self_ip: '10.33.16.5',
+        netmask: '255.255.255.240',
+        vlan: VL1190_GTM_Zscaler,
+      }
+     ]
+
+   henrietta:
+     odd: [
+       {
+         self_name: VL1190_GTM_Zscaler-Self,
+         self_ip: '10.53.16.4',
+         netmask: '255.255.255.240',
+         float_name: VL1190_GTM_Zscaler-Float,
+         float_ip: '10.53.16.3',
+         vlan: VL1190_GTM_Zscaler,
+       }
+     ]
+     even: [
+       {
+         self_name: VL1190_GTM_Zscaler-Self,
+         self_ip: '10.53.16.5',
+         netmask: '255.255.255.240',
+         vlan: VL1190_GTM_Zscaler,
+       }
+     ]
+
+  #Begin active change
+  tasks:
+    - name: Create LTM1 Self IP(s) on Odd Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.self_name }}'
+        address: '{{ item.self_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-local-only
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ webster.odd }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-GTM1' in inventory_hostname)
+      tags: [change]
+
+    - name: Create LTM1 Self IP(s) on Even Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.self_name }}'
+        address: '{{ item.self_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-local-only
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ webster.even }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-GTM2' in inventory_hostname)
+      tags: [change]
+
+    - name: Create Float(s) on Odd Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.float_name }}'
+        address: '{{ item.float_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-1
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ webster.odd }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-GTM2' in inventory_hostname)
+      tags: [change]
+
+    - name: Create LTM1 Self IP(s) on Odd Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.self_name }}'
+        address: '{{ item.self_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-local-only
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ henrietta.odd }}'
+      delegate_to: localhost
+      when: ('US6647NY-DMZ-GTM1' in inventory_hostname)
+      tags: [change]
+
+    - name: Create LTM1 Self IP(s) on Even Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.self_name }}'
+        address: '{{ item.self_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-local-only
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ henrietta.even }}'
+      delegate_to: localhost
+      when: ('US6647NY-DMZ-GTM2' in inventory_hostname)
+      tags: [change]
+
+    - name: Create Float(s) on Odd Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.float_name }}'
+        address: '{{ item.float_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-1
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ henrietta.odd }}'
+      delegate_to: localhost
+      when: ('US6647NY-DMZ-GTM2' in inventory_hostname)
+      tags: [change]
+
+
+#    # Begin rollback if needed
+    - name: Remove Float(s) on Odd Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: absent
+        name: '{{ item.float_name }}'
+        address: '{{ item.float_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-1
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ webster.odd }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-GTM2' in inventory_hostname)
+      tags: [rollback]
+
+    - name: Remove LTM1 Self IP(s) on Odd Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: absent
+        name: '{{ item.self_name }}'
+        address: '{{ item.self_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-local-only
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ webster.odd }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-GTM1' in inventory_hostname)
+      tags: [rollback]
+
+    - name: Remove LTM1 Self IP(s) on Even Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: absent
+        name: '{{ item.self_name }}'
+        address: '{{ item.self_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-local-only
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ webster.even }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-GTM2' in inventory_hostname)
+      tags: [rollback]
+
+    - name: Remove Float(s) on Odd Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: absent
+        name: '{{ item.float_name }}'
+        address: '{{ item.float_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-1
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ henrietta.odd }}'
+      delegate_to: localhost
+      when: ('US6647NY-DMZ-GTM2' in inventory_hostname)
+      tags: [rollback]
+
+    - name: Remove LTM1 Self IP(s) on Odd Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: absent
+        name: '{{ item.self_name }}'
+        address: '{{ item.self_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-local-only
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ henrietta.odd }}'
+      delegate_to: localhost
+      when: ('US6647NY-DMZ-GTM1' in inventory_hostname)
+      tags: [rollback]
+
+    - name: Remove LTM1 Self IP(s) on Even Numbered Device
+      bigip_selfip:
+        provider: '{{ provider }}'
+        state: absent
+        name: '{{ item.self_name }}'
+        address: '{{ item.self_ip }}'
+        netmask: '{{ item.netmask }}'
+        traffic_group: /Common/traffic-group-local-only
+        vlan: '{{ item.vlan }}'
+        allow_service: default
+      loop: '{{ henrietta.even }}'
+      delegate_to: localhost
+      when: ('US6647NY-DMZ-GTM2' in inventory_hostname)
+      tags: [rollback]
