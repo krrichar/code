@@ -52,13 +52,21 @@ def main():
                 net_connect.send_config_set(commands)
 
                 #  configure hsrp priority on router 1 only
+<<<<<<< HEAD:upstream.py
                 if 'xe' in device.get('device'):
+=======
+                if 'vdc1' in device.get('device'):
+>>>>>>> c3c96e3e1601ab77afefc55a9572bfc369881679:cisco/interface/svi.py
                     net_connect.send_config_set([
                         'interface loopback{}'.format(vlan),
                         'hsrp {}'.format(vlan),
                         'priority 200'])
+<<<<<<< HEAD:upstream.py
 
                 print(net_connect.send_command('show run interface loopback {}'.format(vlan)))
+=======
+                print(net_connect.send_command('show run interface {}'.format(vlan)))
+>>>>>>> c3c96e3e1601ab77afefc55a9572bfc369881679:cisco/interface/svi.py
 
                 #  cli output is parsed into a dictionary from returned text
                 #  bgp variables set for configuration structure

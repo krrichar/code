@@ -1,0 +1,214 @@
+---
+- name: Create f5 VLAN Viprion(s)
+  hosts: all
+  connection: local
+  gather_facts: False
+
+  vars_prompt:
+    - name: ansible_user
+      prompt: 'Paychex Username'
+      private: False
+    - name: ansible_password
+      prompt: 'Paychex Password'
+      private: True
+
+  vars:
+    provider:
+      password: '{{ ansible_password }}'
+      server: '{{ inventory_hostname }}'
+      user: '{{ ansible_user }}'
+      validate_certs: no
+      server_port: 443
+
+    webster:
+      vlans: [
+        { name: VL3211_DMZAP_PROD,
+          tag: 3211,
+          interface: INT-EXT,
+        }
+      ]
+      vcmp_guest: [
+        {
+          odd: US6645NY-DMZ-,
+          vlans: [
+            VL3095_F5_DMZ_HA,
+            VL3200_DMZAP_PROD,
+            VL3201_DMZAP_PROD,
+          ]
+        },
+        {
+          even: US6645NY-DMZ-LTM2,
+          vlans: [
+            VL3095_F5_DMZ_HA,
+            VL3200_DMZAP_PROD,
+            VL3201_DMZAP_PROD,
+          ]
+        }
+
+    henrietta:
+      vlans:
+        - name: VL3211_DMZAP_PROD
+          tag: 3211
+          interface: INT-EXT
+      vcmp_guest:
+        - odd: US9485NE-DMZAP-LTM1
+          vlans:
+            - VL3095_F5_DMZ_HA
+            - VL3200_DMZAP_PROD
+            - VL3201_DMZAP_PROD
+            - VL3210_DMZAP_PROD
+            - VL3211_DMZAP_PROD
+            - VL3250_DMZAP_NON_PROD
+            - VL3251_DMZAP_NON_PROD
+            - VL3290_DMZAP_NON_PROD
+            - VL3291_DMZAP_NON_PROD
+        - even: US9485NE-DMZAP-LTM2
+          vlans:
+            - VL3095_F5_DMZ_HA
+            - VL3200_DMZAP_PROD
+            - VL3201_DMZAP_PROD
+            - VL3210_DMZAP_PROD
+            - VL3211_DMZAP_PROD
+            - VL3250_DMZAP_NON_PROD
+            - VL3251_DMZAP_NON_PROD
+            - VL3290_DMZAP_NON_PROD
+            - VL3291_DMZAP_NON_PROD
+
+    tasks:
+    #Begin Change
+    - name: Create VLAN on Viprion(s)
+      bigip_vlan:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.name }}'
+        tag: '{{ item.tag }}'
+        interface: '{{ item.interface }}'
+      loop: '{{ webster.vlans }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-VIP' in inventory_hostname|upper)
+      tags: [change]
+
+    - name: Assign VLANs to VCMP Guest
+      bigip_vcmp_guest:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.odd }}'
+        vlans: '{{ item.vlan }}'
+      loop: '{{ webster.vcmp_guest }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-VIP1' in inventory_hostname|upper)
+      tags: [change]
+
+    - name: Assign VLANs to VCMP Guest
+      bigip_vcmp_guest:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.even }}'
+        vlans: '{{ item.vlan }}'
+      loop: '{{ webster.vcmp_guest }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-VIP2' in inventory_hostname|upper)
+      tags: [change]
+
+    - name: Create VLAN on Viprion(s)
+      bigip_vlan:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.name }}'
+        tag: '{{ item.tag }}'
+        interface: '{{ item.interface }}'
+      loop: '{{ henrietta.vlans }}'
+      delegate_to: localhost
+      when: ('US6647NY-DMZ-VIP' in inventory_hostname|upper)
+      tags: [change]
+  
+    - name: Assign VLANs to VCMP Guest
+      bigip_vcmp_guest:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.odd }}'
+        vlans: '{{ item.vlan }}'
+      loop: '{{ henrietta.vcmp_guest }}'
+      delegate_to: localhost
+      when: ('US6647NY-DMZ-VIP1' in inventory_hostname|upper)
+      tags: [change]
+  
+    - name: Assign VLANs to VCMP Guest
+      bigip_vcmp_guest:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.even }}'
+        vlans: '{{ item.vlan }}'
+      loop: '{{ henrietta.vcmp_guest }}'
+      delegate_to: localhost
+      when: ('US6647NY-DMZ-VIP2' in inventory_hostname|upper)
+      tags: [change]
+
+#   #00 Rollback
+    - name: Remove VLANs to VCMP Guest
+      bigip_vcmp_guest:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.even }}'
+        vlans: '{{ item.vlan }}'
+        loop: '{{ webster.vcmp_guest }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-VIP2' in inventory_hostname|upper)
+      tags: [rollback]
+
+    - name: Remove VLANs to VCMP Guest
+        bigip_vcmp_guest:
+          provider: '{{ provider }}'
+          state: present
+          name: '{{ item.even }}'
+          vlans: '{{ item.vlan }}'
+          loop: '{{ webster.vcmp_guest }}'
+        delegate_to: localhost
+        when: ('US6645NY-DMZ-VIP2' in inventory_hostname|upper)
+        tags: [rollback]
+
+    - name: Remove VLAN on Viprion(s)
+      bigip_vlan:
+        provider: '{{ provider }}'
+        state: absent
+        name: '{{ item.name }}'
+        tag: '{{ item.tag }}'
+        interface: '{{ item.interface }}'
+      loop: '{{ webster.vlans }}'
+      delegate_to: localhost
+      when: ('US6645NY-DMZ-VIP' in inventory_hostname|upper)
+      tags: [rollback]
+      
+    - name: Remove VLANs to VCMP Guest
+        bigip_vcmp_guest:
+          provider: '{{ provider }}'
+          state: present
+          name: '{{ item.even }}'
+          vlans: '{{ item.vlan }}'
+          loop: '{{ webster.vcmp_guest }}'
+        delegate_to: localhost
+        when: ('US6647NY-DMZ-VIP2' in inventory_hostname|upper)
+        tags: [rollback]
+
+    - name: Remove VLANs to VCMP Guest
+        bigip_vcmp_guest:
+          provider: '{{ provider }}'
+          state: present
+          name: '{{ item.even }}'
+          vlans: '{{ item.vlan }}'
+          loop: '{{ webster.vcmp_guest }}'
+        delegate_to: localhost
+        when: ('US6647NY-DMZ-VIP2' in inventory_hostname|upper)
+        tags: [rollback]
+
+    - name: Remove VLAN on Viprion(s)
+      bigip_vlan:
+        provider: '{{ provider }}'
+        state: absent
+        name: '{{ item.name }}'
+        tag: '{{ item.tag }}'
+        interface: '{{ item.interface }}'
+      loop: '{{ webster.vlans }}'
+      delegate_to: localhost
+      when: ('US6647NY-DMZ-VIP' in inventory_hostname|upper)
+      tags: [rollback]
