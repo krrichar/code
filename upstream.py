@@ -6,9 +6,9 @@ from getpass import getpass
 from ntc_templates.parse import parse_output
 import json
 
-password = getpass()
-args = {'username': 'krrichar', 'password': password,
-        'device_type': 'cisco_nxos'}
+# password = getpass()
+args = {'username': 'developer', 'password': 'C1sco12345',
+        'port': 8181, 'device_type': 'cisco_ios'}
 change = input('change or rollback: ').lower()
 
 with open('commands.json') as f:
@@ -39,7 +39,7 @@ def main():
 
                 #  interface commands to create sub-interface and upstream configurations
                 commands = [
-                    'interface vlan {}'.format(vlan),
+                    'interface loopback{}'.format(vlan),
                     'description {}'.format(desc),
                     'ip address {}'.format(address),
                     'no ip redirects',
@@ -52,13 +52,13 @@ def main():
                 net_connect.send_config_set(commands)
 
                 #  configure hsrp priority on router 1 only
-                if 'vdc1' in host.get('device'):
+                if 'xe' in device.get('device'):
                     net_connect.send_config_set([
-                        'interface vlan {}'.format(vlan),
+                        'interface loopback{}'.format(vlan),
                         'hsrp {}'.format(vlan),
                         'priority 200'])
 
-                print(net_connect.send_command('show run interface {}'.format(vlan)))
+                print(net_connect.send_command('show run interface loopback {}'.format(vlan)))
 
                 #  cli output is parsed into a dictionary from returned text
                 #  bgp variables set for configuration structure
