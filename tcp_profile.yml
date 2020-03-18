@@ -1,0 +1,66 @@
+---
+- name: LTM Endpoint Build
+  hosts: all
+  connection: local
+  gather_facts: False
+
+  vars_prompt:
+    - { name: "ansible_user", prompt: "username", private: False }
+    - { name: "ansible_password", prompt: "password", private: True }
+
+  vars:
+    provider:
+      { password: "{{ ansible_password }}",  server: "{{ inventory_hostname }}", user: "{{ ansible_user }}",
+        validate_certs: False, server_port: 443 }
+    
+  vars_files:
+    - perfPools.yaml
+
+  tasks:
+    # Begin Change
+    - name: modify webster pool monitors
+      bigip_pool:
+        provider: "{{ provider }}"
+        state: present
+        name: "{{ item.pool }}"
+        monitors: "{{ item.monitors }}"
+      loop: "{{ webster }}"
+      when: ('US6645NY-PPCORE-LTM-N2A.paychex.com' in inventory_hostname)
+      delegate_to: localhost
+      tags: [ change ]
+
+    - name: modify henrietta pool monitors
+      bigip_pool:
+        provider: "{{ provider }}"
+        state: present
+        name: "{{ item.pool }}"
+        monitors: "{{ item.monitors }}"
+      loop: "{{ henrietta }}"
+      when: ('US6647NY-PPCORE-LTM-N2A.paychex.com' in inventory_hostname)
+      delegate_to: localhost
+      tags: [ change ]
+
+    # Rollback
+    # uncomment tcp_half_open monitors
+    # comment tcp monitors
+    - name: rollback henrietta pool monitors
+      bigip_pool:
+        provider: "{{ provider }}"
+        state: present
+        name: "{{ item.pool }}"
+        monitors: "{{ item.monitors }}"
+      loop: "{{ henrietta }}"
+      when: ('US6647NY-PPCORE-LTM-N2A.paychex.com' in inventory_hostname)
+      delegate_to: localhost
+      tags: [ rollback ]
+
+    - name: rollback webster pool monitors
+      bigip_pool:
+        provider: "{{ provider }}"
+        state: present
+        name: "{{ item.pool }}"
+        monitors: "{{ item.monitors }}"
+      loop: "{{ webster }}"
+      when: ('US6645NY-PPCORE-LTM-N2A.paychex.com' in inventory_hostname)
+      delegate_to: localhost
+      tags: [ rollback ]
