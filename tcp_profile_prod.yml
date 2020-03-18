@@ -1,0 +1,114 @@
+---
+- name: modify tcp profiles
+  hosts: all
+  connection: local
+  gather_facts: False
+
+  vars_prompt:
+    - name: "ansible_user"
+      prompt: "username" 
+      private: False
+    - name: "ansible_password"
+      prompt: "password" 
+      private: True }
+
+  vars:
+    provider:
+      password: "{{ ansible_password }}"  
+      server: "{{ inventory_hostname }}"
+      user: "{{ ansible_user }}"
+      validate_certs: False
+      server_port: 443 
+
+  tasks:
+    # Begin Change
+    # Webster
+    - name: modify tcp profile in prod
+      bigip_profile_tcp:
+        provider: "{{ provider }}"
+        state: present
+        name: "{{ item }}"
+        idle_timeout: 1800
+      loop:
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-clt-prod-wdc
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-pyx-prod-wdc
+      when: (inventory_hostname == 'ltmwebcore.paychex.com')
+      delegate_to: localhost
+      tags: 
+        - change
+
+    # Henrietta
+    - name: modify tcp profile in prod
+      bigip_profile_tcp:
+        provider: "{{ provider }}"
+        state: present
+        name: "{{ item }}"
+        idle_timeout: 1800
+      loop:
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-clt-prod-hdc
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-pyx-prod-hdc
+      when: (inventory_hostname == 'ltmhencore.paychex.com')
+      delegate_to: localhost
+      tags: 
+        - change
+
+    # Omaha
+    - name: modify tcp profile in prod
+      bigip_profile_tcp:
+        provider: "{{ provider }}"
+        state: present
+        name: "{{ item }}"
+        idle_timeout: 1800
+      loop:
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-clt-prod-odc
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-pyx-prod-odc
+      when: (inventory_hostname == 'us9485ne-core-ltm1.paychex.com')
+      delegate_to: localhost
+      tags: 
+        - change
+
+    # Rollback
+     # Webster
+    - name: modify tcp profile in prod
+      bigip_profile_tcp:
+        provider: "{{ provider }}"
+        state: present
+        name: "{{ item }}"
+        idle_timeout: 1800
+      loop:
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-clt-prod-wdc
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-pyx-prod-wdc
+      when: (inventory_hostname == 'ltmwebcore.paychex.com')
+      delegate_to: localhost
+      tags: 
+        - rollback
+
+    # Henrietta
+    - name: modify tcp profile in prod
+      bigip_profile_tcp:
+        provider: "{{ provider }}"
+        state: present
+        name: "{{ item }}"
+        idle_timeout: 1800
+      loop:
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-clt-prod-hdc
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-pyx-prod-hdc
+      when: (inventory_hostname == 'ltmhencore.paychex.com')
+      delegate_to: localhost
+      tags: 
+        - rollback
+
+    # Omaha
+    - name: modify tcp profile in prod
+      bigip_profile_tcp:
+        provider: "{{ provider }}"
+        state: present
+        name: "{{ item }}"
+        idle_timeout: 1800
+      loop:
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-clt-prod-odc
+        - tcpclientpf-alb-hrrs-wlcore-inscompliance-svc-pyx-prod-odc
+      when: (inventory_hostname == 'us9485ne-core-ltm1.paychex.com')
+      delegate_to: localhost
+      tags: 
+        - rollback
