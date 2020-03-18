@@ -1,0 +1,13 @@
+---
+all:
+  hosts:
+  children:
+    web:
+      hosts:
+        US6645NY-PPCORE-LTM-N2A.paychex.com:
+    hen:
+      hosts:
+        US6647NY-PPCORE-LTM-N2A.paychex.com:
+    oma:
+      hosts:
+...
