@@ -1,0 +1,23 @@
+[
+    {
+        "device": "us6645ny-ppcore-vdc1",
+        "vlan": "540",
+        "desc": "VL540_Jenkins_N2A_10.80.140.0/24",
+        "trunks": [
+            "Ethernet1/3",
+            "Ethernet1/6",
+            "Ethernet1/10",
+            "Ethernet1/11",
+            "Ethernet1/12",
+            "Ethernet1/13",
+            "Ethernet5/3",
+            "Ethernet5/6",
+            "Ethernet5/10",
+            "Ethernet1/11",
+            "Ethernet1/12",
+            "Ethernet1/13"
+        ],
+        "network": "10.80.106.0/24",
+        "addr": "10.80.106.1"
+    }
+]
