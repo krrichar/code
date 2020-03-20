@@ -1,0 +1,25 @@
+---
+nodes:
+  - name: test-node-v1
+    address: '100.100.100.100'
+    member: 'test-node-v1:80'
+  - name: test-node-v2
+    address: '200.200.200.200'
+    member: 'test-node-v2:80'
+
+pools:
+  - name: pool-test-v1
+    monitor: tcp
+    method: round-robin
+
+virtual servers:
+  - name: test-virtual-v2
+    destination: '200.200.30.14:80'
+    pool: pool-test-v1
+
+profiles:
+  - http
+  - f5-tcp-wan
+  - name: clientssl
+    context: clientside
+...
