@@ -1,0 +1,125 @@
+---
+- name: Create F5 Endpoint(s)
+  hosts: all
+  connection: local
+  gather_facts: False
+
+  vars_prompt:
+    - name: ansible_user
+      prompt: 'Paychex Username'
+      private: False
+    - name: ansible_password
+      prompt: 'Paychex Password'
+      private: True
+
+  vars:
+    provider:
+      password: '{{ ansible_password }}'
+      server: '{{ inventory_hostname }}'
+      user: '{{ ansible_user }}'
+      validate_certs: False
+      server_port: 443
+
+  tasks:
+    # Begin Change
+    - name: Create Pool(s)
+      bigip_pool:
+        provider: '{{ provider }}'
+        state: present
+        name: '{{ item.pool }}'
+        lb_method: '{{ item.method }}'
+        monitors:
+          - tcp_half_open
+        slow_ramp_time: 120
+      loop:
+        - {pool: pool-chat-internal-uc-L7-446-core-wdc, method: least-connections-member}
+      delegate_to: localhost
+      when: ('LTMWEBCORE' in inventory_hostname|upper)
+      tags: [change]
+
+    - name: Add Pool Member(s) to Pool
+      bigip_pool_member:
+        provider: '{{ provider }}'
+        state: present
+        pool: '{{ item.pool }}'
+        #  partition:
+        address: '{{ item.ip }}'
+        name: '{{ item.name }}'
+        port: '{{ item.port }}'
+      loop:
+        - {pool: pool-chat-internal-uc-L7-446-core-wdc, ip: '10.30.8.25:446', name: ucupapwprw10 port: 446}
+        - {pool: pool-chat-internal-uc-L7-446-core-wdc, ip: '10.30.8.26:446', name: ucupapwprw11 port: 446}
+      delegate_to: localhost
+      when: ('LTMWEBCORE' in inventory_hostname|upper)
+      tags: [change]
+
+    - name: Create Virtual Server(s)
+      bigip_virtual_server:
+        provider: '{{ provider }}'
+        state: present
+        destination: '{{ item.vip }}'
+        enabled_vlans: all
+        ip_protocol: tcp
+        default_persistence_profile: ssl
+        name: '{{ item.server }}'
+        type: standard
+        # irules:
+        #- _sys_https_redirect
+        profiles:
+          - {name: tcp-lan-optimized}
+        #- {name: tcp-lan-optimized, context: server-side}
+        #- {name: clientsslpf, context: client-side}
+          - HTTP-X-Forwarded
+          - {name: 'serverssl_no_expire_check', context: server-side}
+        pool: '{{ item.pool }}'
+        port: '{{ item.service_port }}'
+        snat: automap
+      loop:
+        - {server: vs-chat-internal-uc-L7-446-core-wdc, vip: '10.2.219.251', service_port: 446, pool: pool-chat-internal-uc-L7-446-core-wdc, node_port: 446}
+      delegate_to: localhost
+      when: ('LTMWEBCORE' in inventory_hostname|upper)
+      tags: [change]
+
+    # Begin Rollback if Needed
+    - name: Delete Virtual Server(s)
+      bigip_virtual_server:
+        provider: '{{ provider }}'
+        state: absent
+        destination: '{{ item.vip }}'
+        name: '{{ item.server }}'
+      loop:
+        - {server: vs-chat-internal-uc-L7-446-core-wdc, vip: '10.2.219.251', service_port: 446}
+      delegate_to: localhost
+      when: ('LTMWEBCORE' in inventory_hostname|upper)
+      tags: [rollback]
+
+    - name: Delete Pool Member(s) to Pool
+      bigip_pool_member:
+        provider: '{{ provider }}'
+        state: absent
+        pool: '{{ item.pool }}'
+        #  partition:
+        address: '{{ item.ip }}'
+        name: '{{ item.name }}'
+        port: '{{ item.port }}'
+      loop:
+        - {pool: pool-chat-internal-uc-L7-446-core-wdc, ip: '10.30.8.25:446', name: ucupapwprw10 port: 446}
+        - {pool: pool-chat-internal-uc-L7-446-core-wdc, ip: '10.30.8.26:446', name: ucupapwprw11 port: 446}
+      delegate_to: localhost
+      when: ('LTMWEBCORE' in inventory_hostname|upper)
+      tags: [rollback]
+
+    - name: Delete Pool(s)
+      bigip_pool:
+        provider: '{{ provider }}'
+        state: absent
+        name: '{{ item.pool }}'
+        lb_method: '{{ item.method }}'
+        monitors:
+          - tcp_half_open
+        slow_ramp_time: 120
+      loop:
+        - {pool: pool-chat-internal-uc-L7-446-core-wdc}
+      delegate_to: localhost
+      when: ('LTMWEBCORE' in inventory_hostname|upper)
+      tags: [rollback]
