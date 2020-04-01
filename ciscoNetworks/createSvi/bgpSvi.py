@@ -3,11 +3,12 @@
 
 from netmiko import ConnectHandler
 from getpass import getpass
-from ntc_templates.parse import parse_output
 import json
+from ntc_templates.parse import parse_output
+
 
 password = getpass()
-args = {'username': 'krrichar', 'password': password,
+args = {'username': 'admin', 'password': password,
         'device_type': 'cisco_nxos'}
 change = input('change or rollback: ').lower()
 
@@ -16,9 +17,9 @@ with open('jenkins_prod.json') as f:
 
 
 def login(device):
-    """log into each device in the json file "device"
-    and save running configuration before changes
-    use for prechex to gather configuration backup"""
+    """log into each device in the json file
+    and save running configuration before changes.
+    Use for prechex to gather configuration backup"""
     global net_connect
     net_connect = ConnectHandler(device, session_log=device, **args)
     print(net_connect.find_prompt())
