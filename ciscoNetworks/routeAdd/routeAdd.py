@@ -8,7 +8,7 @@ from ntc_templates.parse import parse_output
 
 
 password = getpass()
-args = {'username': 'krrichar', 'password': password,
+args = {'username': 'admin', 'password': password,
         'device_type': 'cisco_nxos'}
 change = input('change or rollback: ').lower()
 
