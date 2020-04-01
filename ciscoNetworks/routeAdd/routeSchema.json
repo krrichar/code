@@ -1,0 +1,12 @@
+[
+    {
+        "device": "us6645ny-core-vdc1",
+        "route": "10.32.0.64/28",
+        "next_hop": "10.254.244.12"
+    },
+    {
+        "device": "us6645ny-core-vdc2",
+        "route": "10.32.0.64/28",
+        "next_hop": "10.254.244.12"
+    }
+]
