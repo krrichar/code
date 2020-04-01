@@ -6,9 +6,7 @@ import requests
 import urllib3
 
 PASSWORD = getpass()
-HOSTS = [
-    'us6647ny-ppcore-ltm-n2a',
-]
+HOSTS = ['us6647ny-ppcore-ltm-n2a']
 
 for host in HOSTS:
     urllib3.disable_warnings()
