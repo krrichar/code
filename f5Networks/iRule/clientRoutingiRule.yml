@@ -1,18 +1,18 @@
 ---
-- name: create irule and apply to payclusters
+- name: create irule and apply virtual servers
   hosts: all
   connection: local
   gather_facts: False
 
   vars_prompt:
     - name: ansible_user
-      prompt: "Paychex Username"
+      prompt: "Username"
       private: no
     - name: ansible_password
-      prompt: "Paychex Password"
+      prompt: "Password"
       private: yes
     - name: env
-      prompt: "ALB Environment"
+      prompt: "Environment"
       private: no
 
   vars:
@@ -25,162 +25,27 @@
       
   tasks:
       #  configuration changes
-    - name: create alb irule for client routing
+    - name: create irule for client routing
       bigip_irule:
         provider: "{{ provider }}"
         state: present
         module: ltm
-        name: 'rules-alb-client-routing-{{ env }}'
-        src: ./rules-alb-client-routing.txt
+        name: 'rules-client-routing-{{ env }}'
+        src: ./rules-client-routing.tcl
       delegate_to: localhost
       tags: [ change ]
 
-    - name: modify paycluster virtual servers
+    - name: modify virtual servers
       bigip_virtual_server:
         provider: "{{provider}}"
         state: present
         name: '{{ item }}'
         irules:
-          - 'rules-alb-client-routing-{{ env }}'
-          - 'rules-alb-logging-{{ env }}'
+          - 'rules-client-routing-{{ env }}'
+          - 'rules-logging-{{ env }}'
       loop:
-        - vs_ca-pay01-80_web
-        - vs_ca-pay02-80_web
-        - vs_ca-pay03-80_web
-        - vs_ca-pay04-80_web
-        - vs_ca-pay05-80_web
-        - vs_ca-pay06-80_web
-        - vs_ca-pay07-80_web
-        - vs_ca-pay08-80_web
-        - vs_ca-pay09-80_web
-        - vs_ca-pay10-80_web
-        - vs_ca-pay11-80_w
-      when: ('LTMWEBCORE.paychex.com' in inventory_hostname)
+        - vs_virtual_server_a
+        - vs_virtual_server_a
+      when: ('ltm1-site-a' in inventory_hostname)
       delegate_to: localhost
       tags: [ change ]
-
-    - name: modify paycluster virtual servers
-      bigip_virtual_server:
-        provider: "{{provider}}"
-        state: present
-        name: '{{ item }}'
-        irules:
-          - 'rules-alb-logging-{{ env }}'
-          - 'rules-alb-client-routing-{{ env }}'          
-      loop:
-        - vs_ca-pay01-80_hen
-        - vs_ca-pay02-80_hen
-        - vs_ca-pay03-80_hen
-        - vs_ca-pay04-80_hen
-        - vs_ca-pay05-80_hen
-        - vs_ca-pay06-80_hen
-        - vs_ca-pay07-80_hen
-        - vs_ca-pay08-80_hen
-        - vs_ca-pay09-80_hen
-        - vs_ca-pay10-80_hen
-        - vs_ca-pay11-80_h
-      when: ('LTMHENCORE.paychex.com' in inventory_hostname)
-      delegate_to: localhost
-      tags: [ change ]
-
-    - name: modify paycluster virtual servers
-      bigip_virtual_server:
-        provider: "{{provider}}"
-        state: present
-        name: '{{ item }}'
-        irules:
-          - 'rules-alb-logging-{{ env }}'
-          - 'rules-alb-client-routing-{{ env }}'
-      loop:
-        - vs-ca-pay01-80-odc-core
-        - vs-ca-pay02-80-odc-core
-        - vs-ca-pay03-80-odc-core
-        - vs-ca-pay04-80-odc-core
-        - vs-ca-pay05-80-odc-core
-        - vs-ca-pay06-80-odc-core
-        - vs-ca-pay07-80-odc-core
-        - vs-ca-pay08-80-odc-core
-        - vs-ca-pay09-80-odc-core
-        - vs-ca-pay10-80-odc-core
-        - vs-ca-pay11-80-odc-core
-      when: ('US9485NE-CORE-LTM1.paychex.com' in inventory_hostname)
-      delegate_to: localhost
-      tags: [ change ]
-
-      #  rollback changes
-    - name: modify paycluster virtual servers
-      bigip_virtual_server:
-        provider: "{{provider}}"
-        state: present
-        name: '{{ item }}'
-        irules: ''
-      loop:
-        - vs_ca-pay01-80_web
-        - vs_ca-pay02-80_web
-        - vs_ca-pay03-80_web
-        - vs_ca-pay04-80_web
-        - vs_ca-pay05-80_web
-        - vs_ca-pay06-80_web
-        - vs_ca-pay07-80_web
-        - vs_ca-pay08-80_web
-        - vs_ca-pay09-80_web
-        - vs_ca-pay10-80_web
-        - vs_ca-pay11-80_w
-      when: ('LTMWEBCORE.paychex.com' in inventory_hostname)
-      delegate_to: localhost
-      tags: [ rollback ]
-
-    - name: modify paycluster virtual servers
-      bigip_virtual_server:
-        provider: "{{provider}}"
-        state: present
-        name: '{{ item }}'
-        irules: ''
-      loop:
-        - vs_ca-pay01-80_hen
-        - vs_ca-pay02-80_hen
-        - vs_ca-pay03-80_hen
-        - vs_ca-pay04-80_hen
-        - vs_ca-pay05-80_hen
-        - vs_ca-pay06-80_hen
-        - vs_ca-pay07-80_hen
-        - vs_ca-pay08-80_hen
-        - vs_ca-pay09-80_hen
-        - vs_ca-pay10-80_hen
-        - vs_ca-pay11-80_h
-      when: ('LTMHENCORE.paychex.com' in inventory_hostname)
-      delegate_to: localhost
-      tags: [ rollback ]
-
-    - name: modify paycluster virtual servers
-      bigip_virtual_server:
-        provider: "{{provider}}"
-        state: present
-        name: '{{ item }}'
-        irules: ''
-      loop:
-        - vs-ca-pay01-80-odc-core
-        - vs-ca-pay02-80-odc-core
-        - vs-ca-pay03-80-odc-core
-        - vs-ca-pay04-80-odc-core
-        - vs-ca-pay05-80-odc-core
-        - vs-ca-pay06-80-odc-core
-        - vs-ca-pay07-80-odc-core
-        - vs-ca-pay08-80-odc-core
-        - vs-ca-pay09-80-odc-core
-        - vs-ca-pay10-80-odc-core
-        - vs-ca-pay11-80-odc-core
-      when: ('US9485NE-CORE-LTM1.paychex.com' in inventory_hostname)
-      delegate_to: localhost
-      tags: [ rollback ]
-
-    - name: Modify Existing Data Group
-      bigip_irule:
-        provider: "{{ provider }}"
-        state: absent
-        module: ltm
-        name: 'rules-alb-client-routing-{{ env }}'
-        src: ./rules-alb-client-routing.txt
-        delegate_to: localhost
-        tags: [ rollback ]
-      
