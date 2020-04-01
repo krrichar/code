@@ -14,9 +14,9 @@ for host in HOSTS:
     payload = \
         '''
     {
-        "name": "tcplanoptimizedclientpf-alb-parent-custom-1800",
+        "name": "tcp-client-custom-1800",
         "description": "idle timeout 1800",
-        "defaultsFrom": "tcplanoptimizedclientpf-alb-parent",
+        "defaultsFrom": "tcp-lan-optimized",
         "idleTimeout": 1800,
         "keepAliveInterval": 3600
     }
