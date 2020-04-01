@@ -32,3 +32,4 @@ for host in HOSTS:
         )
     print(f'\n{host}:'.upper())
     print(response.text.encode('utf8'))
+
