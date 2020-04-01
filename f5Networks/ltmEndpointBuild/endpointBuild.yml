@@ -6,10 +6,10 @@
 
   vars_prompt:
     - name: ansible_user
-      prompt: 'Paychex Username'
+      prompt: 'Username'
       private: False
     - name: ansible_password
-      prompt: 'Paychex Password'
+      prompt: 'Password'
       private: True
 
   vars:
@@ -29,12 +29,12 @@
         name: '{{ item.pool }}'
         lb_method: '{{ item.method }}'
         monitors:
-          - tcp_half_open
+          - tcp
         slow_ramp_time: 120
       loop:
-        - {pool: pool-chat-internal-uc-L7-446-core-wdc, method: least-connections-member}
+        - {pool: pool-chat-internal, method: least-connections-member}
       delegate_to: localhost
-      when: ('LTMWEBCORE' in inventory_hostname|upper)
+      when: ('ltm1-site-a' in inventory_hostname|upper)
       tags: [change]
 
     - name: Add Pool Member(s) to Pool
@@ -47,10 +47,10 @@
         name: '{{ item.name }}'
         port: '{{ item.port }}'
       loop:
-        - {pool: pool-chat-internal-uc-L7-446-core-wdc, ip: '10.30.8.25:446', name: ucupapwprw10 port: 446}
-        - {pool: pool-chat-internal-uc-L7-446-core-wdc, ip: '10.30.8.26:446', name: ucupapwprw11 port: 446}
+        - {pool: pool-chat-internal, ip: '10.30.8.25:446', name: ucchat1 port: 446}
+        - {pool: pool-chat-internal, ip: '10.30.8.26:446', name: ucchat2 port: 446}
       delegate_to: localhost
-      when: ('LTMWEBCORE' in inventory_hostname|upper)
+      when: ('ltm1-site-a' in inventory_hostname|upper)
       tags: [change]
 
     - name: Create Virtual Server(s)
@@ -63,63 +63,15 @@
         default_persistence_profile: ssl
         name: '{{ item.server }}'
         type: standard
-        # irules:
-        #- _sys_https_redirect
         profiles:
-          - {name: tcp-lan-optimized}
-        #- {name: tcp-lan-optimized, context: server-side}
-        #- {name: clientsslpf, context: client-side}
-          - HTTP-X-Forwarded
+          - {name: clientsslpf, context: client-side}
           - {name: 'serverssl_no_expire_check', context: server-side}
+          - HTTP-X-Forwarded-For
         pool: '{{ item.pool }}'
         port: '{{ item.service_port }}'
         snat: automap
       loop:
-        - {server: vs-chat-internal-uc-L7-446-core-wdc, vip: '10.2.219.251', service_port: 446, pool: pool-chat-internal-uc-L7-446-core-wdc, node_port: 446}
+        - {server: vs-chat-internal, vip: '10.2.219.251', service_port: 446, pool: pool-chat-internal, node_port: 446}
       delegate_to: localhost
-      when: ('LTMWEBCORE' in inventory_hostname|upper)
+      when: ('ltm1-site-a' in inventory_hostname|upper)
       tags: [change]
-
-    # Begin Rollback if Needed
-    - name: Delete Virtual Server(s)
-      bigip_virtual_server:
-        provider: '{{ provider }}'
-        state: absent
-        destination: '{{ item.vip }}'
-        name: '{{ item.server }}'
-      loop:
-        - {server: vs-chat-internal-uc-L7-446-core-wdc, vip: '10.2.219.251', service_port: 446}
-      delegate_to: localhost
-      when: ('LTMWEBCORE' in inventory_hostname|upper)
-      tags: [rollback]
-
-    - name: Delete Pool Member(s) to Pool
-      bigip_pool_member:
-        provider: '{{ provider }}'
-        state: absent
-        pool: '{{ item.pool }}'
-        #  partition:
-        address: '{{ item.ip }}'
-        name: '{{ item.name }}'
-        port: '{{ item.port }}'
-      loop:
-        - {pool: pool-chat-internal-uc-L7-446-core-wdc, ip: '10.30.8.25:446', name: ucupapwprw10 port: 446}
-        - {pool: pool-chat-internal-uc-L7-446-core-wdc, ip: '10.30.8.26:446', name: ucupapwprw11 port: 446}
-      delegate_to: localhost
-      when: ('LTMWEBCORE' in inventory_hostname|upper)
-      tags: [rollback]
-
-    - name: Delete Pool(s)
-      bigip_pool:
-        provider: '{{ provider }}'
-        state: absent
-        name: '{{ item.pool }}'
-        lb_method: '{{ item.method }}'
-        monitors:
-          - tcp_half_open
-        slow_ramp_time: 120
-      loop:
-        - {pool: pool-chat-internal-uc-L7-446-core-wdc}
-      delegate_to: localhost
-      when: ('LTMWEBCORE' in inventory_hostname|upper)
-      tags: [rollback]
