@@ -42,7 +42,6 @@
         provider: '{{ provider }}'
         state: present
         pool: '{{ item.pool }}'
-        #  partition:
         address: '{{ item.ip }}'
         name: '{{ item.name }}'
         port: '{{ item.port }}'
