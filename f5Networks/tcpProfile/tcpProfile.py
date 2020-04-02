@@ -7,12 +7,8 @@ import urllib3
 
 PASSWORD = getpass()
 HOSTS = [
-    'us6647ny-ppcore-ltm-n2a',
-    'us6647ny-ppcore-ltm-n',
-    'us6647ny-ppcore-ltm-perf',
-    'us6645ny-ppcore-ltm-n2a',
-    'us6645ny-ppcore-ltm-n',
-    'us6645ny-ppcore-ltm-perf'
+    'us-site-a',
+    'us-site-b'
 ]
 
 for host in HOSTS:
@@ -20,9 +16,9 @@ for host in HOSTS:
     url = f'https://{host}/mgmt/tm/ltm/profile/tcp'
     payload = \
         {
-            "name": "tcplanoptimizedclientpf-alb-parent-custom-1800",
+            "name": "tcplanoptimizedclientpf",
             "description": "idle timeout 1800",
-            "defaultsFrom": "tcplanoptimizedclientpf-alb-parent",
+            "defaultsFrom": "tcp-lan-optimized",
             "idleTimeout": 1800,
             "keepAliveInterval": 3600
         }
