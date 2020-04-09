@@ -9,7 +9,7 @@ syntax:
 python <script_name> <hostname> <YAML_file>
 
 example:
-python scratch.py us6647ny-ppcore-ltm9 scratch.yaml
+python ltmEndpoint.py lab-ltm schema.yaml
 """
 from f5.bigip import ManagementRoot
 from getpass import getpass
