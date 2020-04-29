@@ -1,0 +1,78 @@
+{
+    "nodes": [
+        {
+            "name": "jknmsprw1",
+            "address": "tbd",
+            "partition": "Common"
+        },
+        {
+            "name": "jknmsprw3",
+            "address": "tbd",
+            "partition": "Common"
+        }
+    ],
+    "pools": [
+        {
+            "name": "pool-sle-jenkins-443-prod-wdc",
+            "monitor": "tcp",
+            "partition": "Common",
+            "members": [
+                {
+                    "name": "jknmsprw3",
+                    "port": "443"
+                }
+            ]            
+        },
+        {
+            "name": "pool-jenkins-443-prod-wdc",
+            "monitor": "tcp",
+            "partition": "Common",
+            "members": [
+                {
+                    "name": "jknmsprw1",
+                    "port": "443"
+                }
+            ]
+        }
+    ],
+    "virtual_servers": [
+        {
+            "name": "vs-sle-jenkins-443-prod-wdc",
+            "destination": "tbd:443",
+            "description": "CHG Jenkins",
+            "mask": "255.255.255.255",
+            "partition": "Common",
+            "ipProtocol": "tcp",
+            "pool": "pool-sle-jenkins-443-prod-wdc",
+            "profiles": [
+                "tcp",
+                {
+                    "name": "serverssl_no_expire_check",
+                    "context": "serverside"
+                }
+            ],
+            "sourceAddressTranslation": {
+                "type": "automap"
+            }
+        },
+        {
+            "name": "vs-jenkins-443-prod-wdc",
+            "destination": "tbd:443",
+            "description": "CHG Jenkins",
+            "mask": "255.255.255.255",
+            "partition": "Common",
+            "ipProtocol": "tcp",
+            "pool": "pool-jenkins-443-prod-wdc",
+            "profiles": [
+                "tcp",
+                {
+                    "name": "serverssl_no_expire_check",
+                    "context": "serverside"
+                }
+            ],
+            "sourceAddressTranslation": {
+                "type": "automap"
+            }
+        }
+    ]
+}
