@@ -1,0 +1,38 @@
+---
+nodes:  
+  - name: node-test1 
+    address: 1.1.1.40
+  - name: node-test2
+    address: 2.2.2.80
+
+pools:
+  - name: pool-test1
+    monitor: tcp
+    members: 
+      - name: node-test1
+        port: "80"
+      - name: node-test2
+        port: "80"
+  - name: pool-test2
+    monitor: tcp
+    members: 
+      - name: node-test1
+        port: "8080"
+      - name: node-test2
+        port: "8080"
+
+virtual_servers: 
+  - name: vs-test-virtual
+    destination: 200.200.200.200:80
+    mask: 255.255.255.255
+    ipProtocol: tcp
+    pool: pool-test2
+    profiles:
+      - http
+      - f5-tcp-wan
+      - name: clientssl
+        context: clientside
+    partition: Common
+    sourceAddressTranslation: 
+      type: automap
+...

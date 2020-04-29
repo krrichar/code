@@ -1,0 +1,12 @@
+[
+    {
+        "device": "router1-site-a",
+        "route": "10.32.0.64/28",
+        "next_hop": "10.254.244.12"
+    },
+    {
+        "device": "router2-site-a",
+        "route": "10.32.0.64/28",
+        "next_hop": "10.254.244.12"
+    }
+]

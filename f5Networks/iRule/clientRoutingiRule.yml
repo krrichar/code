@@ -1,0 +1,51 @@
+---
+- name: create irule and apply virtual servers
+  hosts: all
+  connection: local
+  gather_facts: False
+
+  vars_prompt:
+    - name: ansible_user
+      prompt: "Username"
+      private: no
+    - name: ansible_password
+      prompt: "Password"
+      private: yes
+    - name: env
+      prompt: "Environment"
+      private: no
+
+  vars:
+    provider:
+      password: "{{ ansible_password }}"
+      server: "{{ inventory_hostname }}"
+      user: "{{ ansible_user }}"
+      validate_certs: no
+      server_port: 443
+      
+  tasks:
+      #  configuration changes
+    - name: create irule for client routing
+      bigip_irule:
+        provider: "{{ provider }}"
+        state: present
+        module: ltm
+        name: 'rules-client-routing-{{ env }}'
+        src: ./rules-client-routing.tcl
+      delegate_to: localhost
+      tags: [ change ]
+
+    - name: modify virtual servers
+      bigip_virtual_server:
+        provider: "{{provider}}"
+        state: present
+        name: '{{ item }}'
+        irules:
+          - 'rules-client-routing-{{ env }}'
+          - 'rules-logging-{{ env }}'
+      loop:
+        - vs_virtual_server_a
+        - vs_virtual_server_a
+      when: ('ltm1-site-a' in inventory_hostname)
+      delegate_to: localhost
+      tags: [ change ]
